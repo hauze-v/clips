@@ -8,17 +8,17 @@ import { ModalService } from '../services/modal.service';
 })
 export class NavComponent implements OnInit {
 
-constructor(public modalService: ModalService) { }
+  constructor(public modalService: ModalService) { }
 
-public ngOnInit(): void {
+  public ngOnInit(): void {
 
-}
+  }
 
-public openModal($event: Event) {
-  /** Prevents basic anchor tag functionality when user clicks */
-  $event.preventDefault();
+  public openModal($event: Event) {
+    /** Prevents basic anchor tag functionality when user clicks */
+    $event.preventDefault();
 
-  this.modalService.toggleModal();
-}
+    this.modalService.toggleModal('auth');
+  }
 
 }
