@@ -1,1 +1,4 @@
-<ng-content></ng-content>
+<!-- The content of the tab, projected from another (hosting) component -->
+<div [class.hidden]="!active">
+  <ng-content></ng-content>
+</div>
