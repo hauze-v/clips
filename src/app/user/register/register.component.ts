@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +16,7 @@ export class RegisterComponent {
   public confirm_password = new FormControl('', [Validators.required]);
   public phoneNumber = new FormControl('', [Validators.required, Validators.minLength(14), Validators.maxLength(14)]);
 
+  /* ---------------------------- Public Properties --------------------------- */
   public showAlert: boolean = false;
   public alertMsg: string = 'Please wait! Your account is being created.';
   public alertColor: string = 'blue';
@@ -30,9 +32,17 @@ export class RegisterComponent {
     phoneNumber: this.phoneNumber
   });
 
-  public registerUser(): void {
+  constructor (private fireAuthService: AngularFireAuth) { };
+
+  public async registerUser(): Promise<void> {
     this.showAlert = true;
     this.alertMsg = 'Please wait! Your account is being created.';
     this.alertColor = 'blue';
+
+    // Destructure formValues
+    const { email, password } = this.registerForm.value;
+
+    // Create user credentials with fireBase API
+    const userCred = await this.fireAuthService.createUserWithEmailAndPassword(email as string, password as string);
   }
 }
