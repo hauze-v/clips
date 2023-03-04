@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 @Component({
   selector: 'app-register',
@@ -20,6 +21,7 @@ export class RegisterComponent {
   public showAlert: boolean = false;
   public alertMsg: string = 'Please wait! Your account is being created.';
   public alertColor: string = 'blue';
+  public inSubmission = false;
 
 
   // From Group Object
@@ -32,17 +34,43 @@ export class RegisterComponent {
     phoneNumber: this.phoneNumber
   });
 
-  constructor (private fireAuthService: AngularFireAuth) { };
+  constructor (
+    private fireAuthService: AngularFireAuth,
+    private firestoreService: AngularFirestore 
+  ) { };
 
   public async registerUser(): Promise<void> {
     this.showAlert = true;
     this.alertMsg = 'Please wait! Your account is being created.';
     this.alertColor = 'blue';
+    this.inSubmission = true;
 
     // Destructure formValues
     const { email, password } = this.registerForm.value;
 
-    // Create user credentials with fireBase API
-    const userCred = await this.fireAuthService.createUserWithEmailAndPassword(email as string, password as string);
+    try {
+      // Create user credentials with fireBase API
+      const userCred = await this.fireAuthService.createUserWithEmailAndPassword(email as string, password as string);
+
+      // Grab collection from firestore db (or create one if it doesn't exist already);
+      await this.firestoreService.collection('users').add({
+        name: this.name.value,
+        email: this.email.value,
+        age: this.age.value,
+        phoneNumber: this.phoneNumber.value
+      });
+      
+    } catch(err) {
+      console.error(err);
+      this.alertMsg = 'An unexpected error occurred. Please try again later';
+      this.alertColor = 'red';
+      this.inSubmission = false;
+      // This return statements stops the function from executing further.
+      return 
+    }
+
+    // Update alert message
+    this.alertMsg = 'Success! Your account has been created.';
+    this.alertColor = 'green';
   }
 }
