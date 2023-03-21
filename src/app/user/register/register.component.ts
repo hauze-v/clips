@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AuthService } from 'src/app/services/auth.service';
+import IUser from '../../models/user.model';
+
 
 @Component({
   selector: 'app-register',
@@ -12,7 +13,7 @@ export class RegisterComponent {
   /* ------------------------------ Form Controls ----------------------------- */
   public name = new FormControl('', [Validators.required, Validators.minLength(3)]);
   public email = new FormControl('', [Validators.required, Validators.email]);
-  public age = new FormControl('', [Validators.required, Validators.min(18), Validators.max(120)]);
+  public age = new FormControl<number | null>(null, [Validators.required, Validators.min(18), Validators.max(120)]);
   public password = new FormControl('', [Validators.required, Validators.pattern(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm)]);
   public confirm_password = new FormControl('', [Validators.required]);
   public phoneNumber = new FormControl('', [Validators.required, Validators.minLength(14), Validators.maxLength(14)]);
@@ -35,8 +36,7 @@ export class RegisterComponent {
   });
 
   constructor (
-    private fireAuthService: AngularFireAuth,
-    private firestoreService: AngularFirestore 
+    private authService: AuthService
   ) { };
 
   public async registerUser(): Promise<void> {
@@ -45,21 +45,8 @@ export class RegisterComponent {
     this.alertColor = 'blue';
     this.inSubmission = true;
 
-    // Destructure formValues
-    const { email, password } = this.registerForm.value;
-
     try {
-      // Create user credentials with fireBase API
-      const userCred = await this.fireAuthService.createUserWithEmailAndPassword(email as string, password as string);
-
-      // Grab collection from firestore db (or create one if it doesn't exist already);
-      await this.firestoreService.collection('users').add({
-        name: this.name.value,
-        email: this.email.value,
-        age: this.age.value,
-        phoneNumber: this.phoneNumber.value
-      });
-      
+      await this.authService.createUser(this.registerForm.value as IUser);
     } catch(err) {
       console.error(err);
       this.alertMsg = 'An unexpected error occurred. Please try again later';

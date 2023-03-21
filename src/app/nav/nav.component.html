@@ -5,24 +5,37 @@
     <a class="text-3xl text-indigo-400 font-bold uppercase mr-4" href="index.html">Clipz</a>
 
     <div class="flex flex-grow items-center">
-      <!-- Primary Navigation -->
+
+      <!-- Navigation Links -->
       <ul class="flex flex-row mt-1">
-        <!-- Navigation Links -->
-        <li>
+
+        <!-- Un-Authenticated Links -->
+        <!-- 
+          * Instead of checking the local property for isAuthenticated in our class file, we can instead go straight to the source
+          * and check the isAuthenticated$ observable from our AuthService using the | async pipe. This pipe is super helpful and allows us
+          * to subscribe to observables straight from the template. We can also subscribe to promises as well. However, to do either with the negation
+          * operator, we need to wrap the conditional in parathensis first.
+        -->
+        <li *ngIf="!(authService.isAuthenticated$ | async); else authLinks">
           <a class="px-2"
              href="#"
              (click)="openModal($event)">Login / Register</a>
         </li>
-        <li>
-          <a class="px-2" href="#">Manage</a>
-        </li>
-        <li>
-          <a class="px-2" href="#">Upload</a>
-        </li>
-        <li>
-          <a class="px-2" href="about.html">About</a>
-        </li>
+
+        <!-- Authenticated Links -->
+        <ng-template #authLinks>
+          <li>
+            <a class="px-2" href="#">Manage</a>
+          </li>
+          <li>
+            <a class="px-2" href="#">Upload</a>
+          </li>
+          <li>
+            <a class="px-2" href="about.html">About</a>
+          </li>
+        </ng-template>
       </ul>
+
       <!-- Language Switcher -->
       <ul class="flex flex-row ml-auto">
         <li>
