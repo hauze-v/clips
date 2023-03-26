@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
 import IUser from '../../models/user.model';
+import { RegisterValidators } from '../validators/register-validators';
 
 
 @Component({
@@ -25,7 +26,7 @@ export class RegisterComponent {
   public inSubmission = false;
 
 
-  // From Group Object
+  // Form Group Object
   public registerForm = new FormGroup({
     name: this.name,
     email: this.email,
@@ -33,12 +34,13 @@ export class RegisterComponent {
     password: this.password,
     confirm_password: this.confirm_password,
     phoneNumber: this.phoneNumber
-  });
+  }, [RegisterValidators.match]);
 
   constructor (
     private authService: AuthService
   ) { };
 
+  /* --------------------------------- Methods -------------------------------- */
   public async registerUser(): Promise<void> {
     this.showAlert = true;
     this.alertMsg = 'Please wait! Your account is being created.';

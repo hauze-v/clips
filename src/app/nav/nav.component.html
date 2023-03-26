@@ -21,6 +21,9 @@
              href="#"
              (click)="openModal($event)">Login / Register</a>
         </li>
+        <li>
+          <a class="px-2" href="about.html">About</a>
+        </li>
 
         <!-- Authenticated Links -->
         <ng-template #authLinks>
@@ -31,7 +34,10 @@
             <a class="px-2" href="#">Upload</a>
           </li>
           <li>
-            <a class="px-2" href="about.html">About</a>
+            <a class="px-2"
+               href="#"
+               (click)="logout($event)">Logout
+            </a>
           </li>
         </ng-template>
       </ul>
