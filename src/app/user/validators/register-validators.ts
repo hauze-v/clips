@@ -10,6 +10,10 @@ import { ValidationErrors, AbstractControl, ValidatorFn } from "@angular/forms";
  * * Factory functions are a design pattern for returning a new object/function. 
  */
 
+/**
+ * * Keep your synchronous and asynchronous validators in separate files
+ */
+
 export class RegisterValidators {
 
   // Static methods don't have access to a class's methods or properties. They have limited scope. In this method, we return null if there are no errors
@@ -37,4 +41,5 @@ export class RegisterValidators {
       return error
     }
   }
+
 }

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
 import IUser from '../../models/user.model';
+import { EmailTaken } from '../validators/email-taken';
 import { RegisterValidators } from '../validators/register-validators';
 
 
@@ -13,7 +14,10 @@ import { RegisterValidators } from '../validators/register-validators';
 export class RegisterComponent {
   /* ------------------------------ Form Controls ----------------------------- */
   public name = new FormControl('', [Validators.required, Validators.minLength(3)]);
-  public email = new FormControl('', [Validators.required, Validators.email]);
+
+  // * The FormControl class constructor takes in synchronous validators in the 2nd argument followed by asynchronous in the 3rd
+  public email = new FormControl('', [Validators.required, Validators.email], [this.emailTaken.validate]);
+  
   public age = new FormControl<number | null>(null, [Validators.required, Validators.min(18), Validators.max(120)]);
   public password = new FormControl('', [Validators.required, Validators.pattern(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm)]);
   public confirm_password = new FormControl('', [Validators.required]);
@@ -37,7 +41,8 @@ export class RegisterComponent {
   }, [RegisterValidators.match('password', 'confirm_password')]);
 
   constructor (
-    private authService: AuthService
+    private authService: AuthService,
+    private emailTaken: EmailTaken,
   ) { };
 
   /* --------------------------------- Methods -------------------------------- */
