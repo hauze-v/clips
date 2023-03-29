@@ -2,7 +2,7 @@
 <header id="header" class="bg-secondary">
   <nav class="container mx-auto flex justify-start items-center py-8 px-4">
     <!-- App Name -->
-    <a class="text-3xl text-indigo-400 font-bold uppercase mr-4" href="index.html">Clipz</a>
+    <a class="text-3xl text-indigo-400 font-bold uppercase mr-4" routerLink="/">Clipz</a>
 
     <div class="flex flex-grow items-center">
 
@@ -21,8 +21,15 @@
              href="#"
              (click)="openModal($event)">Login / Register</a>
         </li>
-        <li>
-          <a class="px-2" href="about.html">About</a>
+        <!-- 
+            * The routerLink directive will redirect the user to another route in our app without refreshing the page 
+            * The routerLinkActive directive will dynamically assign classes whenever the route is currently active
+            * it can be applied directly to the link (anchor) or the parent li element 
+          -->
+        <li routerLinkActive="text-indigo-400">
+          <a class="px-2" 
+             routerLink="/about"
+             >About</a>
         </li>
 
         <!-- Authenticated Links -->
