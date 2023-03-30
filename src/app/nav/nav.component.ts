@@ -15,7 +15,6 @@ export class NavComponent implements OnInit {
   constructor(
     public modalService: ModalService,
     public authService: AuthService,
-    private fireAuthService: AngularFireAuth
   ) {
     // * Not needed now that we're subscribing directly to the observable from the template
     // Subscribe to the isAuthenticated$ observable in AuthService and update the local property when it changes
@@ -34,13 +33,4 @@ export class NavComponent implements OnInit {
 
     this.modalService.toggleModal('auth');
   }
-
-  public async logout($event: Event) {
-    /** Prevent basic anchor tag functionality (refreshing page) when user clicks */
-    $event.preventDefault();
-
-    // Signs the current user out
-    await this.fireAuthService.signOut();
-  }
-
 }
