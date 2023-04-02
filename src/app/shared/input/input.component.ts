@@ -6,16 +6,11 @@ import { FormControl } from '@angular/forms';
   templateUrl: './input.component.html',
   styleUrls: ['./input.component.css']
 })
-export class InputComponent implements OnInit {
+export class InputComponent {
   @Input() control: FormControl = new FormControl();
   @Input() type: string = 'text';
   @Input() placeholder: string = '';
   // Optional ngx-masking
   @Input() format: string = '';
 
-  constructor() { }
-
-  ngOnInit(): void {
-
-  }
 }

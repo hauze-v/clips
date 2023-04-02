@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { UserModule } from './user/user.module';
@@ -14,6 +13,7 @@ import { AboutComponent } from './about/about.component';
 import { VideoModule } from './video/video.module';
 import { ClipComponent } from './clip/clip.component';
 import { NotFoundComponent } from './not-found/not-found.component';
+import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 
 @NgModule({
   declarations: [
@@ -33,6 +33,8 @@ import { NotFoundComponent } from './not-found/not-found.component';
     AngularFirestoreModule,
     VideoModule,
     AppRoutingModule,
+    // ! This module is needed for storing files in Firebase cloud
+    AngularFireStorageModule
   ],
   providers: [],
   bootstrap: [AppComponent]
