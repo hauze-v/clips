@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { Form, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { last } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 
 @Component({
@@ -15,6 +16,18 @@ export class UploadComponent {
 
   /** Reference to the file uploaded by the user */
   public file: File | null = null;
+
+  /** Responsible for updating the progress bar in the alert component */
+  public percentage: number = 0;
+
+  /** Responsible for toggling the percentage in the alert component */
+  public showPercentage: boolean = false;
+
+  /** Alert Component Properties */
+  public showAlert: boolean = false;
+  public alertMsg: string = "Please wait! Your clip is being uploaded.";
+  public alertColor: string = 'blue';
+  public inSubmission: boolean = false;
 
   /* -------------------------- Form Group & Controls ------------------------- */
   public title: FormControl = new FormControl('', {
@@ -54,7 +67,14 @@ export class UploadComponent {
     this.showUploadConfig = true;
   }
 
+  
   public uploadFile(): void {
+    this.showAlert = true;
+    this.alertMsg = "Please wait! Your clip is being uploaded.";
+    this.alertColor = 'blue';
+    this.showPercentage = true;
+    this.inSubmission = true;
+    
     /** 
      * Conflicting filenames can cause issues and Firebase doesn't handle by default
      * UUID package can be used to generate unique ID's 
@@ -64,8 +84,31 @@ export class UploadComponent {
     // Keep your file storage and naming system clean! If a 'clips' directory doesn't exist, Firebase will create one for us
     const clipPath = `clips/${clipFileName}.mp4`;
 
-    // Store the file in Firebase
-    this.storageService.upload(clipPath, this.file)
+    // The upload storageService.upload method returns an upload task observable that we can subscribe to for monitoring progress
+    const task = this.storageService.upload(clipPath, this.file);
+    task.percentageChanges().subscribe(progress => {
+      this.percentage = progress as number / 100;
+    });
 
+    // Use the last pipe to get the final (successful state) of the upload task
+    // * We use arrow functions here to preserve the 'this' context and object syntax to catch errors
+    task.snapshotChanges().pipe(
+      last()
+    ).subscribe({
+      next: (snapshot) => {
+        // Update alert component properties
+        this.alertMsg = "Success! Your clip is now ready to share with the world.";
+        this.alertColor = 'green';
+        this.showPercentage = false;
+        // this.inSubmission = false;
+      },
+      error: (error) => {
+        this.alertColor = 'red';
+        this.alertMsg = 'Upload failed! Please try again later.';
+        this.inSubmission = true;
+        this.showPercentage = false;
+        console.log(error);
+      }
+    });
   }
 }
