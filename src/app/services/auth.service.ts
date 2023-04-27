@@ -65,7 +65,7 @@ export class AuthService {
     // Create user credentials with fireBase authentication service
     const userCred = await this.fireAuthService.createUserWithEmailAndPassword(userData.email as string, userData.password as string);
 
-    // Overwrite this setting to fix recurring API call/looping error in browser
+    // ! Overwrite this setting to fix recurring API call/looping error in browser
     this.firestoreService.firestore.settings({ experimentalForceLongPolling: true });
 
     if (!userCred.user) {

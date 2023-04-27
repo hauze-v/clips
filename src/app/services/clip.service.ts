@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
+import { AngularFirestore, AngularFirestoreCollection, DocumentReference } from '@angular/fire/compat/firestore';
 import IClip from '../models/clip.model';
 
 @Injectable({
@@ -12,9 +12,11 @@ export class ClipService {
     private firestoreService: AngularFirestore
   ) {
     this.clipsCollection = firestoreService.collection('clips');
+    this.firestoreService.firestore.settings({ experimentalForceLongPolling: true });
   }
 
-  public async createClip(data: IClip) {
-    await this.clipsCollection.add(data);
+  public createClip(data: IClip): Promise<DocumentReference<IClip>> {
+    console.log('inside createClip');
+   return this.clipsCollection.add(data);
   }
 }
