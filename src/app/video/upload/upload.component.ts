@@ -5,6 +5,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { last, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import firebase from 'firebase/compat/app';
+import { ClipService } from 'src/app/services/clip.service';
 
 @Component({
   selector: 'app-upload',
@@ -53,6 +54,7 @@ export class UploadComponent {
   constructor(
     private storageService: AngularFireStorage,
     private fireAuthService: AngularFireAuth,
+    private clipsService: ClipService
   ) {
     // Subscribe to the user observable from fireAuthService to get the latest user object
     this.fireAuthService.user.subscribe(user => this.user = user);
@@ -81,6 +83,9 @@ export class UploadComponent {
 
   
   public uploadFile(): void {
+    // Disable the form during file upload
+    this.uploadForm.disable();
+    
     // Update alert properties
     this.showAlert = true;
     this.alertMsg = "Please wait! Your clip is being uploaded.";
@@ -117,15 +122,15 @@ export class UploadComponent {
     ).subscribe({
       next: (url) => {
         const clip = {
-          uid: this.user?.uid,
-          displayName: this.user?.displayName,
+          uid: this.user?.uid as string,
+          displayName: this.user?.displayName as string,
           title: this.title.value,
           fileName: `${clipFileName}.mp4`,
           // ! Create a reference obj that points to a specific obj in our storage. We can use es6's object shorthand syntax here
           url
         };
 
-        console.log(clip)
+        this.clipsService.createClip(clip);
 
         // Update alert component properties
         this.alertMsg = "Success! Your clip is now ready to share with the world.";
@@ -133,6 +138,7 @@ export class UploadComponent {
         this.showPercentage = false;
       },
       error: (error) => {
+        this.uploadForm.enable();
         this.alertColor = 'red';
         this.alertMsg = 'Upload failed! Please try again later.';
         this.inSubmission = true;
