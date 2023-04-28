@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ClipService } from 'src/app/services/clip.service';
 
 @Component({
   selector: 'app-manage',
@@ -17,13 +18,18 @@ export class ManageComponent {
 
   constructor(
     private router: Router,
-    private activatedRoute: ActivatedRoute) { }
+    private activatedRoute: ActivatedRoute,
+    private clipService: ClipService
+  ) { }
 
   public ngOnInit(): void {
     // Listen for changes in the queryParameters for the activated route and update the local videoOrder reference
     this.activatedRoute.queryParams.subscribe((params: Params) => {
       this.videoOrder = params.sort === '2' ? params.sort : '1';
     }); // nG will complete the Observable when the component is destroyed and the router destroys the component when a user navigates to a different page
+
+    // Subscribe to getUserClips observable
+    this.clipService.getUserClips().subscribe(console.log);
   }
 
   public sort(event: Event) {

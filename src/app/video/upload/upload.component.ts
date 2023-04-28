@@ -140,7 +140,8 @@ export class UploadComponent implements OnDestroy {
           title: this.title.value,
           fileName: `${clipFileName}.mp4`,
           // ! Create a reference obj that points to a specific obj in our storage. We can use es6's object shorthand syntax here
-          url
+          url,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         const clipDocRef = await this.clipsService.createClip(clip);
