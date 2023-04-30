@@ -33,7 +33,7 @@ export class ModalService {
     const modal = this.modals.find(element => element.id === id);
 
     if (modal) {
-      modal.visible = !modal.visible;
+      modal.visible = !modal.visible;  
     }
   }
 }
