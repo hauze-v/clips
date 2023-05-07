@@ -19,6 +19,7 @@ export class ManageComponent {
 
   /** Local store of users clips from firebase */
   public clips: IClip[] = [];
+  public activeClip: IClip | null = null;
   
 
   constructor(
@@ -65,7 +66,17 @@ export class ManageComponent {
   public openModal($event: Event, clip: IClip): void {
     console.log('inside openModal');
     $event.preventDefault();
+
+    this.activeClip = clip;
     
     this.modal.toggleModal('editClip');
+  }
+
+  update($event: IClip) {
+    this.clips.forEach((element, index) => {
+      if (element.docID == $event.docID) {
+        this.clips[index].title = $event.title;
+      }
+    })
   }
 }
