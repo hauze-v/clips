@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 import firebase from 'firebase/compat/app';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
+import { FfmpegService } from 'src/app/services/ffmpeg.service';
 
 @Component({
   selector: 'app-upload',
@@ -59,10 +60,14 @@ export class UploadComponent implements OnDestroy {
     private storageService: AngularFireStorage,
     private fireAuthService: AngularFireAuth,
     private clipsService: ClipService,
-    private router: Router
+    private router: Router,
+    public ffmpegService: FfmpegService
   ) {
     // Subscribe to the user observable from fireAuthService to get the latest user object
     this.fireAuthService.user.subscribe(user => this.user = user);
+
+    // Load ffmpeg as soon as possible
+    this.ffmpegService.init();
   }
 
   /** Cancel any upload services if the user navigates away */
