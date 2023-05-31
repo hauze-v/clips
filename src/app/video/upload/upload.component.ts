@@ -38,9 +38,12 @@ export class UploadComponent implements OnDestroy {
   public alertMsg: string = "Please wait! Your clip is being uploaded.";
   public alertColor: string = 'blue';
   public inSubmission: boolean = false;
+  public screenshots: string[] = [];
 
   // Used as reference for canceling any upload calls/services on component destroy (navigationEnd)
   public task?: AngularFireUploadTask;
+
+  public selectedScreenshot: string = '';
 
   /** Form Group & Control Properties */
   public title: FormControl = new FormControl('', {
@@ -78,7 +81,12 @@ export class UploadComponent implements OnDestroy {
   /** 
    * * The file is accessible through the drop's event object
    */
-  public storeFile($event: Event) {
+  public async storeFile($event: Event) {
+    // Prevent process from running twice
+    if (this.ffmpegService.isRunning) {
+      return;
+    }
+
     this.isDragOver = false;
 
     // Check which type of event (drag or upload field). Then assert the $event type here before assigning. 
@@ -91,6 +99,9 @@ export class UploadComponent implements OnDestroy {
     if (!this.file || this.file.type !== 'video/mp4') {
       return
     }
+
+    this.screenshots = await this.ffmpegService.getScreenshots(this.file);
+    this.selectedScreenshot = this.screenshots[0];
     
     // Show the manage upload form
     this.title.setValue(
