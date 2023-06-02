@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireStorage, AngularFireUploadTask } from '@angular/fire/compat/storage';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { last, switchMap } from 'rxjs';
+import { combineLatest, forkJoin, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import firebase from 'firebase/compat/app';
 import { ClipService } from 'src/app/services/clip.service';
@@ -39,6 +39,7 @@ export class UploadComponent implements OnDestroy {
   public alertColor: string = 'blue';
   public inSubmission: boolean = false;
   public screenshots: string[] = [];
+  public screenshotTask?: AngularFireUploadTask;
 
   // Used as reference for canceling any upload calls/services on component destroy (navigationEnd)
   public task?: AngularFireUploadTask;
@@ -111,7 +112,7 @@ export class UploadComponent implements OnDestroy {
   }
 
   
-  public uploadFile(): void {
+  public async uploadFile() {
     // Disable the form during file upload
     this.uploadForm.disable();
     
@@ -131,6 +132,10 @@ export class UploadComponent implements OnDestroy {
     // Keep your file storage and naming system clean! If a 'clips' directory doesn't exist, Firebase will create one for us
     const clipPath = `clips/${clipFileName}.mp4`;
 
+    // Grab blob
+    const screenshotBlob = await this.ffmpegService.blobFromURL(this.selectedScreenshot);
+    const screenshotPath = `screenshots/${clipFileName}.png`;
+
     // The upload storageService.upload method returns an upload task observable that we can subscribe to for monitoring progress
     this.task = this.storageService.upload(clipPath, this.file);
 
@@ -138,25 +143,51 @@ export class UploadComponent implements OnDestroy {
     // If the file doesn't exist firebase will create a temporary placeholder for you
     const clipRef = this.storageService.ref(clipPath);
 
+    // Upload screenshot
+    this.screenshotTask = this.storageService.upload(screenshotPath, screenshotBlob);
+
+    const screenshotRef = this.storageService.ref(screenshotPath);
+
     // Use the percentageChanges() method to get the upload this.task's progress
-    this.task.percentageChanges().subscribe(progress => {
-      this.percentage = progress as number / 100;
+    // ! use combine latest operator to merge observables for both video and png uploads
+    combineLatest([
+      this.task.percentageChanges(),
+      this.screenshotTask.percentageChanges()
+    ]).subscribe((progress) => {
+      const [clipProgress, screenshotProgress] = progress;
+
+      if (!clipProgress || !screenshotProgress) {
+        return;
+      }
+
+      const total = clipProgress + screenshotProgress;
+
+      this.percentage = total as number / 200;
     });
 
     // Use the last pipe to get the final (successful state) of the upload task
     // * We use arrow functions here to preserve the 'this' context and object syntax to catch errors
-    this.task.snapshotChanges().pipe(
-      last(),
-      switchMap(() => clipRef.getDownloadURL())
+    forkJoin([
+        this.task.snapshotChanges(),
+        this.screenshotTask.snapshotChanges()
+    ]).pipe(
+      switchMap(() => forkJoin([
+        clipRef.getDownloadURL(),
+        screenshotRef.getDownloadURL()
+      ]))
     ).subscribe({
-      next: async (url) => {
+      next: async (urls) => {
+        const [clipUrl, screenshotUrl] = urls;
+
         const clip = {
           uid: this.user?.uid as string,
           displayName: this.user?.displayName as string,
           title: this.title.value,
           fileName: `${clipFileName}.mp4`,
           // ! Create a reference obj that points to a specific obj in our storage. We can use es6's object shorthand syntax here
-          url,
+          url: clipUrl,
+          screenshotUrl: screenshotUrl,
+          screenshotFileName: `${clipFileName}.png`,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
