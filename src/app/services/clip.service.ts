@@ -5,17 +5,21 @@ import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 import IClip from '../models/clip.model';
+import { Resolve, RouterStateSnapshot, Router, ActivatedRouteSnapshot } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ClipService {
+export class ClipService implements Resolve<IClip | null>{
   public clipsCollection: AngularFirestoreCollection<IClip>;
+  pageClips: IClip[] = [];
+  pendingReq: boolean = false;
 
   constructor(
     private firestoreService: AngularFirestore,
     private fireAuthService: AngularFireAuth,
-    private storage: AngularFireStorage
+    private storage: AngularFireStorage,
+    private router: Router
   ) {
     this.clipsCollection = firestoreService.collection('clips');
     this.firestoreService.firestore.settings({ experimentalForceLongPolling: true });
@@ -23,7 +27,7 @@ export class ClipService {
 
   public createClip(data: IClip): Promise<DocumentReference<IClip>> {
     console.log('inside createClip');
-   return this.clipsCollection.add(data);
+    return this.clipsCollection.add(data);
   }
 
   // * Since we're going to allow users to sort their list of clips, returning an observable makes more sense here
@@ -74,5 +78,58 @@ export class ClipService {
 
     // Select the document
     await this.clipsCollection.doc(clip.docID).delete();
+  }
+
+  public async getClips() {
+
+    if (this.pendingReq) {
+      return;
+    }
+
+    this.pendingReq = true;
+
+    let query = this.clipsCollection.ref.orderBy(
+      'timestamp', 'desc'
+    ).limit(6)
+
+    const { length } = this.pageClips;
+
+    if (length) {
+      const lastDocID = this.pageClips[length - 1].docID;
+      const lastDoc = await this.clipsCollection.doc(lastDocID)
+        .get()
+        .toPromise()
+
+      query = query.startAfter(lastDoc);
+    }
+
+    const snapshot = await query.get();
+
+    snapshot.forEach(doc => {
+      this.pageClips.push({
+        docID: doc.id,
+        ...doc.data()
+      })
+    })
+
+    this.pendingReq = false;
+    
+  }
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+    return this.clipsCollection.doc(route.params.id)
+      .get()
+      .pipe(
+        map(snapshot => {
+          const data = snapshot.data();
+ 
+          if (!data) {
+            this.router.navigate(['/']);
+            return null;
+          }
+
+          return data;
+        })
+      )
   }
 }
